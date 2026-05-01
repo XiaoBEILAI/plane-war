@@ -414,7 +414,8 @@
 
         // 绘制爆炸效果
         function drawExplosions() {
-            explosions.forEach((exp, index) => {
+            for (let index = explosions.length - 1; index >= 0; index--) {
+                const exp = explosions[index];
                 ctx.save();
                 ctx.translate(exp.x, exp.y);
 
@@ -437,7 +438,7 @@
                 if (exp.alpha <= 0) {
                     explosions.splice(index, 1);
                 }
-            });
+            }
         }
 
         // 碰撞检测
@@ -469,11 +470,16 @@
             // 绘制爆炸
             drawExplosions();
 
-            // 检测子弹与敌机碰撞
-            bullets.forEach((bullet, bIndex) => {
-                enemies.forEach((enemy, eIndex) => {
+            // 检测子弹与敌机碰撞（倒序遍历避免索引问题）
+            for (let bIndex = bullets.length - 1; bIndex >= 0; bIndex--) {
+                const bullet = bullets[bIndex];
+                let bulletHit = false;
+
+                for (let eIndex = enemies.length - 1; eIndex >= 0; eIndex--) {
+                    const enemy = enemies[eIndex];
+
                     if (checkCollision(bullet, enemy)) {
-                        bullets.splice(bIndex, 1);
+                        bulletHit = true;
                         enemy.health--;
 
                         if (enemy.health <= 0) {
@@ -494,12 +500,19 @@
 
                             enemies.splice(eIndex, 1);
                         }
+                        break; // 一颗子弹只能击中一个敌人
                     }
-                });
-            });
+                }
 
-            // 检测玩家与敌机碰撞
-            enemies.forEach((enemy, index) => {
+                if (bulletHit) {
+                    bullets.splice(bIndex, 1);
+                }
+            }
+
+            // 检测玩家与敌机碰撞（倒序遍历避免索引问题）
+            for (let index = enemies.length - 1; index >= 0; index--) {
+                const enemy = enemies[index];
+
                 if (checkCollision(player, enemy)) {
                     lives--;
                     updateLivesDisplay();
@@ -515,8 +528,9 @@
                     if (lives <= 0) {
                         endGame();
                     }
+                    break; // 一次只碰撞一个敌机
                 }
-            });
+            }
 
             // 随机生成敌机
             if (Math.random() < 0.02 + level * 0.005) {
